@@ -1,5 +1,6 @@
 #include "login.h"
 #include "SimpleAudioEngine.h"
+#include "MainScene.h"
 
 USING_NS_CC;
 CCScene* LoginScene::scene()
@@ -53,6 +54,20 @@ bool LoginScene::init()
 	pEditBox_password->setTag(102);
 	this->addChild(pEditBox_password);
 
+
+	//Ìí¼ÓÈ·ÈÏ¼ü
+	auto yesItem = MenuItemImage::create(
+		"yes.png",
+		"yes.png",
+		CC_CALLBACK_1(LoginScene::menuYesCallback, this));
+
+	yesItem->setPosition(Vec2(origin.x + visibleSize.width / 2,
+		origin.y + visibleSize.height / 4));
+
+	// create menu, it's an autorelease object
+	auto menu = Menu::create(yesItem, NULL);
+	menu->setPosition(Vec2::ZERO);
+	this->addChild(menu, 1);
 	return true;
 }
 
@@ -82,4 +97,8 @@ void LoginScene::editBoxTextChanged(EditBox* editBox, const std::string& text)
 	default:
 		break;
 	}
+}
+void LoginScene::menuYesCallback(cocos2d::Ref* pSender)
+{
+	Director::getInstance()->replaceScene(TransitionFade::create(1.0f, MainScene::createScene()));
 }

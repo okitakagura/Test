@@ -13,6 +13,7 @@ public:
 	virtual bool init();
 	
 	static cocos2d::CCScene* scene();
+	void menuYesCallback(cocos2d::Ref* pSender);
 	CREATE_FUNC(LoginScene);
 
 	//当编辑框获得焦点时将被调用  
