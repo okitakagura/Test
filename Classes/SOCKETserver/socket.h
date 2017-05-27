@@ -11,11 +11,13 @@ public:
 	ball_websocket();
 	~ball_websocket();
 
+	static ball_websocket * getInstance();
+
 	virtual void onOpen(WebSocket*ws);
 	/*init会触发WebSocket链接服务器，如果成功，WebSocket就会调用onOpen，
 	告诉调用者，客户端到服务器的通讯链路已经成功建立，可以收发消息了。*/
 	virtual void onMessage(WebSocket*ws, const WebSocket::Data&data);
-	/*network::WebSocket::Data对象存储客户端接收到的数据， 
+	/*network::WebSocket::Data对象存储客户端接收到的数据，
 	isBinary属性用来判断数据是二进制还是文本，len说明数据长度，bytes指向数据。*/
 	virtual void onClose(WebSocket*ws);
 	/*不管是服务器主动还是被动关闭了WebSocket，客户端将收到这个请求后，
@@ -29,8 +31,8 @@ public:
 	void setAccountName(const std::string & name);
 	std::string & getAccountName();
 private:
-	WebSocket *_socket;
+	static ball_websocket *_ball_websocket；
+		WebSocket *_socket;
 	std::map<int, std::string>_gameConfig;
 	std::string _accountName;
 };
-

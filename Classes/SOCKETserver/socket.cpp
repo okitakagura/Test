@@ -1,3 +1,4 @@
+#pragma execution_character_set("utf-8")
 #include "socket.h"
 #include "Header/Common.h"
 
@@ -10,6 +11,23 @@ ball_websocket::ball_websocket()
 ball_websocket::~ball_websocket()
 {
 
+}
+
+ball_websocket * ball_websocket::getInstance()
+{
+	if (!_ball_websocket)
+	{
+		_ball_websocket = new ball_websocket();
+		if (_ball_websocket && _ball_websocket->init())
+		{
+			_ball_websocket->autorelease();
+		}
+		else
+		{
+			CC_SAFE_DELETE(_ball_websocket);
+		}
+	}
+	return _ball_websocket;
 }
 
 bool ball_websocket::init()
@@ -50,11 +68,11 @@ void ball_websocket::onMessage(WebSocket*ws, const WebSocket::Data&data)//返回数
 		}
 
 		if (doc.IsObject() && doc.HasMember("MsgType"))
-		//Checks whether a number can be losslessly converted to a double
-		//return Whether a member with that name exists.
+			//Checks whether a number can be losslessly converted to a double
+			//return Whether a member with that name exists.
 		{
 			int msgType = doc["MsgType"].GetInt();//getint将输入的字符流分解成整数，且每次调用得到一个整数
-			
+
 			if (msgType == MessageType::eMsg_LOGIN_RESULT)
 			{
 				Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("LoginResult", (void *)msg.c_str());//发送
@@ -129,7 +147,7 @@ void ball_websocket::onClose(WebSocket *ws)
 	{
 		_socket = nullptr;
 	}
-    CC_SAFE_DELETE(ws);
+	CC_SAFE_DELETE(ws);
 }
 
 void ball_websocket::onError(WebSocket*ws, const WebSocket::ErrorCode&data)
