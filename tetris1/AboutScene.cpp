@@ -33,6 +33,7 @@ bool AboutScene::init()
 	auto imageView = ui::ImageView::create("aboutbg.png");
 	imageView->setPosition(Vec2(0, 0));
 	imageView->setAnchorPoint(Vec2(0, 0));
+	imageView->setScale(0.85f);
 	this->addChild(imageView, 0);
 	//·µ»Ø¼ü
 	auto ReturnItem = MenuItemImage::create(
@@ -52,7 +53,7 @@ bool AboutScene::init()
 	auto label = Label::createWithTTF("Tetris", "fonts/Marker Felt.ttf", 100);
 	label->setColor(Color3B(245, 146, 71));
 	// position the label on the center of the screen
-	label->setPosition(Vec2(350, 500));
+	label->setPosition(Vec2(350, 540));
 
 	// add the label as a child to this layer
 	this->addChild(label, 1);

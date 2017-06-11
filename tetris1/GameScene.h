@@ -58,7 +58,7 @@ public:
 
 	void menuRestartCallback(cocos2d::Ref* pSender);
 	void menuReturnCallback(cocos2d::Ref* pSender);
-
+	friend class GameLay;
 	CREATE_FUNC(GameScene);
 
 private:

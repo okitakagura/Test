@@ -1,5 +1,6 @@
 #include "GameScene.h"
 #include "StartScene.h"
+#include "GameLay.h"
 #include <ui\UIImageView.h>
 
 USING_NS_CC;
@@ -10,7 +11,7 @@ USING_NS_CC;
 102 103 104 105 四个按钮
 
 */
-
+class GameLay;
 Scene* GameScene::createScene()
 {
 	// 'scene' is an autorelease object
@@ -46,20 +47,29 @@ bool GameScene::init()
 	bSize = 31;
 	level = 1;
 	score = 0;
-
-	this->view();
-
 	// 注册捕捉监听 键盘
 	auto listenerkeyPad = EventListenerKeyboard::create();
 	listenerkeyPad->onKeyReleased = CC_CALLBACK_2(GameScene::onKeyReleased, this);
 	listenerkeyPad->onKeyPressed = CC_CALLBACK_2(GameScene::onKeyPressed, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listenerkeyPad, this);
+	
+	this->view();
 
-	// 移动定时器	
-	this->schedule(schedule_selector(GameScene::quickMove), 1.0f);
-
+	// 移动定时器
+	extern int pattern;
+	int i = pattern;
+	if (i == 1) {
+		this->schedule(schedule_selector(GameScene::quickMove), 1.0f);
+	}
+	else if (i == 2) {
+		this->schedule(schedule_selector(GameScene::quickMove), 0.6f);
+	}
+	else if (i == 3) {
+		this->schedule(schedule_selector(GameScene::quickMove), 0.4f);
+	}
 	// 创建方块
 	createBlocks();
+
 	return true;
 }
 void GameScene::view()
@@ -118,6 +128,9 @@ void GameScene::view()
 	highScore->setAnchorPoint(Vec2(0, 1));
 	highScore->setPosition(10, height - 210);
 	this->addChild(highScore, 1);
+
+	
+
 }
 
 
@@ -509,7 +522,7 @@ void GameScene::checkBox()
 	if (score > upScore) {
 		level++;
 		levelLabel->setString(String::createWithFormat("%d", level)->_string);
-		this->schedule(schedule_selector(GameScene::quickMove), 1.0f / level);
+		
 	}
 }
 // 按键事件
@@ -665,11 +678,12 @@ void GameScene::GameOver()
 void GameScene::menuRestartCallback(Ref *pSender)
 {
 
-	Director::getInstance()->replaceScene(GameScene::createScene());
+	Director::getInstance()->replaceScene(GameLay::createScene());
 }
 
 void GameScene::menuReturnCallback(Ref *pSender)
 {
 
 	Director::getInstance()->replaceScene(StartScene::createScene());
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("music.mp3", true);
 }

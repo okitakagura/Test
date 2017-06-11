@@ -1,5 +1,5 @@
 #include "StartScene.h"
-#include "GameScene.h"
+#include "GameLay.h"
 #include "AboutScene.h"
 #include <ui\UIImageView.h>
 
@@ -72,9 +72,7 @@ bool StartScene::init()
 }
 void StartScene::menuStartCallback(cocos2d::Ref * pSender)
 {
-	Director::getInstance()->replaceScene(TransitionSplitRows::create(1.2f, GameScene::createScene()));
-	SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-	SimpleAudioEngine::getInstance()->playBackgroundMusic("music2.mp3", true);
+	Director::getInstance()->replaceScene(TransitionSplitRows::create(1.2f, GameLay::createScene()));
 
 }
 void StartScene::menuAboutCallback(cocos2d::Ref * pSender)
