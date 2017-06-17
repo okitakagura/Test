@@ -1,78 +1,70 @@
 #ifndef __GameScene_SCENE_H__
 #define __GameScene_SCENE_H__
-
 #include "SimpleAudioEngine.h"
-
 #include "AudioEngine.h"
-
 #include "cocos2d.h"
-
 using namespace CocosDenshion;
 
 class GameScene : public cocos2d::Layer
 {
 public:
-	// there's no 'id' in cpp, so we recommend returning the class instance pointer
 	static cocos2d::Scene* createScene();
-
-	// Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
 	virtual bool init();
-
-	void onKeyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event *event);
-
-	// 初始化界面
-	void view();
-
+	void onKeyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event *event);//按住键
+	void onKeyReleased(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event *event);//松开键
+	void view();//界面
 	void createBlocks();//创建方块
 	void createPreShape(int shape[4][2]);// 创建未来方块
 	void changeShape();//改变形状
-	// 获取坐标					
-	float getX(int x);
+
+	//坐标转换				
+	float getX(int x);//转化为像素坐标
 	float getY(int y);
-	int getIx(float x);
+	int getIx(float x);//转换为棋盘坐标
 	int getIy(float y);
-	
-	// 是否可以存在
-	bool isExist(int x, int y);
 
+	int highest();//最高高度
 
-	void quickMove(float f);//方块移动
-	void downMove(float f);
-	void moveBlocks(int num);//方块移动
+	void checkBox();//检查是否可以消除
 
-	// 最高高度
-	int highest();
+	void GameOver();//游戏结束
 
-	bool isBoxStopDown(int tag);
-	bool isBoxStopLeft(int tag);
-	bool isBoxStopRight(int tag);
-
-	// 检查是否可以消除
-	void checkBox();
-
-	// 游戏结束
-	void GameOver();
-
-	cocos2d::Vector<cocos2d::Sprite *> boxList;
-	cocos2d::Vector<cocos2d::Sprite *> shapeList;
+	cocos2d::Vector<cocos2d::Sprite *> boxList;//游戏界面里面的方块
+	cocos2d::Vector<cocos2d::Sprite *> shapeList;//未来方块
 
 	void menuRestartCallback(cocos2d::Ref* pSender);
 	void menuReturnCallback(cocos2d::Ref* pSender);
+
 	friend class GameLay;
+
 	CREATE_FUNC(GameScene);
 
+
+	bool in_out_x(int x[]);//判断是否超过界限
+	bool in_out_y(int y[]);
+	bool in_out_s(int tag);
+	bool GameScene::change_position(int flag);//判断是否左右移动
+
+	void clean(int a[], int number);//用来消去
+	void downMove(float y);//向下移动
+	void down(float y);
+	void moveBlocks(float direction);//左右移动
+
 private:
-	int bHigh;
-	float bSize;
+	int bSize;//方块的大小
 	float width;
 	float height;
 	int shape;
-	int preShape;
-	int preColor;
+	int shape_pre;
+	int color_pre;
+	int color;
 	int level;
 	int score;
-	cocos2d::__Array * array1;
-
+	int dir;
+	int dir_pre;
+	float time;//刷新时间
 };
+
+
 
 #endif // __GameScene_SCENE_H__
