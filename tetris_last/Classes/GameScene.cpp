@@ -21,14 +21,14 @@ bool GameScene::init()
 	Size visibleSize = Director::getInstance()->getVisibleSize();//界面大小
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-	bSize = 31;//每个小方块大小
+	bSize = 31;
 	width = visibleSize.width;
 	height = visibleSize.height;
 	shape = -1;
 	color = -1;
 	level = 1;
 	score = 0;
-
+	dir = -1;
 
 	// 注册捕捉监听 键盘
 	auto listenerkeyPad = EventListenerKeyboard::create();
@@ -59,7 +59,6 @@ bool GameScene::init()
 
 }
 
-//初始化场景
 void GameScene::view()
 
 {
@@ -71,25 +70,6 @@ void GameScene::view()
 	imageView->setScaleX(480 / ix);
 	imageView->setScaleY(600 / iy);
 	this->addChild(imageView, 0);
-
-
-	CCSprite *image = CCSprite::create("picture1.png");
-	image->setPosition(Vec2(375, 125));
-	image->setAnchorPoint(Vec2(0, 0));
-	image->setScale(0.8f);
-	this->addChild(image, 0);
-	image->setTag(888);
-
-	isSoundOpen = false;
-	//添加声音按钮
-	CCMenuItemImage *soundbtnOn = CCMenuItemImage::create("soundon2.png", "soundon2.png");
-	CCMenuItemImage *soundbtnOff = CCMenuItemImage::create("soundoff2.png", "soundoff2.png");
-	CCMenuItemToggle *toggle = CCMenuItemToggle::createWithTarget(this, menu_selector(GameScene::SoundOnOff), soundbtnOn, soundbtnOff, NULL);
-	toggle->setPosition(CCPointMake(0, 0));
-	CCMenu *menu1 = CCMenu::create(toggle, NULL);
-	menu1->setPosition(ccp(400, 30));
-	this->addChild(menu1);
-
 
 	// NEXT标签
 	Label* NextLabel = Label::createWithTTF("NEXT", "fonts/arial.ttf", 29);
@@ -109,7 +89,7 @@ void GameScene::view()
 	Label* levelLabel = Label::createWithTTF("1", "fonts/arial.ttf", 28);
 	levelLabel->setColor(Color3B(255, 255, 255));
 	levelLabel->setAnchorPoint(Vec2(0, 1));
-	levelLabel->setPosition(100, 120);
+	levelLabel->setPosition(100,  120);
 	this->addChild(levelLabel, 1);
 	levelLabel->setTag(95);
 
@@ -145,26 +125,10 @@ void GameScene::view()
 
 }
 
-//声音的开启与关闭
-void GameScene::SoundOnOff(cocos2d::Ref* pSender)
-{
-	if (isSoundOpen)
-	{
-		SimpleAudioEngine::sharedEngine()->resumeBackgroundMusic();
-		isSoundOpen = false;
-	}
-	else
-	{
-		SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
-		isSoundOpen = true;
-	}
-}
-
-//创建方块
 void GameScene::createBlocks()
 
 {
-	//方块的7种模式
+	//方块的7中模式
 	int boxes[7][4][2] = {
 		{ { 0,0 },{ 1,0 },{ 0,1 },{ 1,1 } },
 		{ { 1,0 },{ 0,0 },{ 2,0 },{ 3,0 } },
@@ -202,11 +166,10 @@ void GameScene::createBlocks()
 	shape_pre = rand() % 7;
 	color_pre = rand() % 7;
 
-	createPreShape(boxes[shape_pre]);
+	createPreShape(boxes[shape_pre]);//创建未来方块
 }
 
-//创建未来方块
-void GameScene::createPreShape(int shape[4][2])//参数为行数（shape）
+void GameScene::createPreShape(int shape[4][2])
 {
 	int s, zx, zy;
 	s = 27;
@@ -224,7 +187,7 @@ void GameScene::createPreShape(int shape[4][2])//参数为行数（shape）
 	for (int i = 0; i<4; i++) {
 		auto box = Sprite::create(String::createWithFormat("hlw%d.png", color_pre + 1)->_string);
 		box->setScale(0.65, 0.65);
-		box->setPosition(Vec2(zx + shape[i][0] * s, zy + shape[i][1] * s));//位置
+		box->setPosition(Vec2(zx + shape[i][0] * s, zy + shape[i][1] * s));
 		this->addChild(box, 1);
 		this->setTag(90 + i);
 		shapeList.pushBack(box);
@@ -257,8 +220,7 @@ int GameScene::getIy(float y)
 	return (y - 130) / 31;
 }
 
-//判断最高点
-int GameScene::highest()
+int GameScene::highest()//判断最高点
 {
 	int h = 0;
 	for (int i = 0; i<boxList.size(); i++)
@@ -280,13 +242,13 @@ void GameScene::checkBox()
 	int del[4];
 	int num = 0;
 	int check;
-	bool square[10][14];
+	bool square[10][13];
 	for (int i = 0; i < boxList.size(); i++)//转化为棋盘
 	{
 		cocos2d::Sprite*box = boxList.at(i);
 		square[getIx(box->getPositionX())][getIy(box->getPositionY())] = true;
 	}
-	for (int i = 0; i<13; i++)//判断是否达成一行是个都为true的情况，存在这个情况就应当消去记录
+	for (int i = 0; i<12; i++)//判断是否达成一行是个都为true的情况，存在这个情况就应当消去记录
 	{
 		check = 0;
 		for (int j = 0; j < 10; j++)
@@ -299,21 +261,14 @@ void GameScene::checkBox()
 		if (check == 10)
 		{
 			del[num] = i;
-			num++;//可消去的行数，一次性最多可消4行
+			num++;
 		}
 	}
 
 	clean(del, num);
 
-	if (highest() >= 8)
-	{
-		//更换图片 
-		Texture2D* texture = Director::getInstance()->getTextureCache()->addImage("timg.png");
-		CCSprite *image = (CCSprite *)this->getChildByTag(888);
-		image->setTexture(texture);
-	}
 
-	
+
 	// 计算分数
 
 	switch (num)
@@ -347,13 +302,12 @@ void GameScene::checkBox()
 
 		levelLabel->setString(String::createWithFormat("%d", level)->_string);
 
-		this->schedule(schedule_selector(GameScene::downMove), (time / level) + 0.1f);//改变速度
+		this->schedule(schedule_selector(GameScene::downMove), (time / level)+0.1f);//改变速度
 
 	}
 
 }
 
-//清除
 void GameScene::clean(int a[], int number)
 {
 	for (int n = 0; n < boxList.size(); n++)
@@ -404,6 +358,7 @@ void GameScene::clean(int a[], int number)
 }
 
 // 按键事件
+
 void GameScene::onKeyPressed(EventKeyboard::KeyCode keycode, cocos2d::Event *event)
 {
 	if (keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW)  //下
@@ -420,14 +375,14 @@ void GameScene::onKeyPressed(EventKeyboard::KeyCode keycode, cocos2d::Event *eve
 	}
 	else if (keycode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)  //左
 	{
-		if (highest() < 13 && change_position(-1))
+		if (highest() < 13&&change_position(-1))
 		{
 			moveBlocks(-1);
 		}
 	}
 	else if (keycode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)  //右
 	{
-		if (highest() < 13 && change_position(1))
+		if (highest() < 13&&change_position(1))
 		{
 			moveBlocks(1);
 		}
@@ -438,27 +393,8 @@ void GameScene::onKeyPressed(EventKeyboard::KeyCode keycode, cocos2d::Event *eve
 		// 在这里改变形态
 		changeShape();
 	}
-	else if(keycode == EventKeyboard::KeyCode::KEY_Q) //声音开启与关闭
-	{ 
-		SoundOnOff_Key();
-	}
 }
 
-//Q键开启关闭声音
-void GameScene::SoundOnOff_Key() {
-	if (isSoundOpen)
-	{
-		SimpleAudioEngine::sharedEngine()->resumeBackgroundMusic();
-		isSoundOpen = false;
-	}
-	else
-	{
-		SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
-		isSoundOpen = true;
-	}
-}
-
-//放开↑键
 void GameScene::onKeyReleased(EventKeyboard::KeyCode keycode, cocos2d::Event *event)
 {
 	if (keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW)  //下
@@ -469,11 +405,10 @@ void GameScene::onKeyReleased(EventKeyboard::KeyCode keycode, cocos2d::Event *ev
 	}
 }
 
-//改变形状
 void GameScene::changeShape()
 {
 	if (highest() < 14) {
-		int ctime[7] = { 0,1,1,1,3,3,3 }; // 对应着可以变换的次数
+		int ctime[7] = { 0,1,1,1,3,3,3 }; // 对应的模式可以变换的次数
 		int flag = 1;//1为右转，-1为左转
 		int bx[4], by[4], fx[4], fy[4];
 		Sprite* boxes[4];
@@ -521,8 +456,7 @@ void GameScene::changeShape()
 	}
 }
 
-//可以旋转，返回1，不可以则返回0，主要检测左右是否超出游戏范围
-bool GameScene::in_out_x(int x[])
+bool GameScene::in_out_x(int x[])//可以旋转，返回1，不可以则返回0，主要检测左右是否超出游戏范围
 {
 	int check = 1;
 	for (int i = 0; i < 4; i++)
@@ -535,8 +469,7 @@ bool GameScene::in_out_x(int x[])
 	return check;
 }
 
-//可以旋转，返回1，不可以则返回0，主要检测是否会触碰到最底层
-bool GameScene::in_out_y(int y[])
+bool GameScene::in_out_y(int y[])//可以旋转，返回1，不可以则返回0，主要检测是否会触碰到最底层
 {
 	int check = 1;
 	for (int i = 0; i < 4; i++)
@@ -549,8 +482,7 @@ bool GameScene::in_out_y(int y[])
 	return check;
 }
 
-//判断是否可以左右移动
-bool GameScene::change_position(int flag)
+bool GameScene::change_position(int flag)//判断是否可以左右移动
 {
 	bool square[10][13];
 	for (int i = 0; i < boxList.size(); i++)//转化为棋盘
@@ -564,7 +496,7 @@ bool GameScene::change_position(int flag)
 	for (int i = 0; i<4; i++) {
 		boxes[i] = (Sprite *)this->getChildByTag(110 + i);
 		bx[i] = getIx(boxes[i]->getPositionX()) + flag;//假设如果可以移动之后的坐标
-		by[i] = getIy(boxes[i]->getPositionY());
+		by[i] = getIy(boxes[i]->getPositionY()) ;
 	}
 
 	for (int i = 0; i < 10; i++)
@@ -621,7 +553,7 @@ void GameScene::downMove(float y)
 				box[i]->setTag(40);
 				this->boxList.pushBack(box[i]);
 			}
-			//判断是否消除，并创建新的方块
+			//判断是否得分
 			if (highest() < 13)
 			{
 				checkBox();
@@ -643,14 +575,12 @@ void GameScene::downMove(float y)
 	}
 }
 
-//实现downMove(1)
 void GameScene::down(float y)
 {
 	downMove(1);
 }
 
-//检测是否可以下移。0表示不可以，1表示可以
-bool GameScene::in_out_s(int tag)
+bool GameScene::in_out_s(int tag)//检测是否可以下移。0表示不可以，1表示可以
 {
 	cocos2d::Sprite*box;
 	for (int i = 0; i < 4; i++)

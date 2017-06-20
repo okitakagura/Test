@@ -1,80 +1,67 @@
-#include "GameScene.h"
+ï»¿#include "GameScene.h"
 #include "StartScene.h"
 #include "GameLay.h"
 #include <ui\UIImageView.h>
-
 USING_NS_CC;
 
-// tag ´ú±íµÄ¶ÔÏó
-/*
-100 101 x y ×ø±êÖ¸Ê¾
-102 103 104 105 ËÄ¸ö°´Å¥
-
-*/
-class GameLay;
 Scene* GameScene::createScene()
 {
-	// 'scene' is an autorelease object
 	auto scene = Scene::create();
-
-	// 'layer' is an autorelease object
 	auto layer = GameScene::create();
-
-	// add layer as a child to scene
 	scene->addChild(layer);
-
-	// return the scene
 	return scene;
 }
 
-// on "init" you need to initialize your instance
 bool GameScene::init()
 {
-	//////////////////////////////
-	// 1. super init first
 	if (!Layer::init())
 	{
 		return false;
 	}
-
-	Size visibleSize = Director::getInstance()->getVisibleSize();
+	Size visibleSize = Director::getInstance()->getVisibleSize();//ç•Œé¢å¤§å°
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
-	bHigh = 65;
+
+	bSize = 31;
 	width = visibleSize.width;
 	height = visibleSize.height;
-	preShape = -1;
-	preColor = -1;
-	bSize = 31;
+	shape = -1;
+	color = -1;
 	level = 1;
 	score = 0;
-	// ×¢²á²¶×½¼àÌı ¼üÅÌ
+	dir = -1;
+
+	// æ³¨å†Œæ•æ‰ç›‘å¬ é”®ç›˜
 	auto listenerkeyPad = EventListenerKeyboard::create();
 	listenerkeyPad->onKeyReleased = CC_CALLBACK_2(GameScene::onKeyReleased, this);
 	listenerkeyPad->onKeyPressed = CC_CALLBACK_2(GameScene::onKeyPressed, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listenerkeyPad, this);
-	
+
 	this->view();
 
-	// ÒÆ¶¯¶¨Ê±Æ÷
-	extern int pattern;
+	extern int pattern;//éš¾åº¦çš„åˆ¤æ–­
 	int i = pattern;
 	if (i == 1) {
-		this->schedule(schedule_selector(GameScene::quickMove), 1.0f);
+		time = 1.0f;
+		this->schedule(schedule_selector(GameScene::downMove), 1.1f);
 	}
 	else if (i == 2) {
-		this->schedule(schedule_selector(GameScene::quickMove), 0.6f);
+		time = 0.6f;
+		this->schedule(schedule_selector(GameScene::downMove), 0.7f);
 	}
 	else if (i == 3) {
-		this->schedule(schedule_selector(GameScene::quickMove), 0.4f);
+		time = 0.4f;
+		this->schedule(schedule_selector(GameScene::downMove), 0.5f);
 	}
-	// ´´½¨·½¿é
-	createBlocks();
+
+	createBlocks();//åˆ›å»ºæ–¹å—
 
 	return true;
+
 }
+
 void GameScene::view()
+
 {
-	// ÉèÖÃ±³¾°
 	auto imageView = ui::ImageView::create("bg.png");
 	imageView->setPosition(Vec2(0, 0));
 	imageView->setAnchorPoint(Vec2(0, 0));
@@ -84,41 +71,41 @@ void GameScene::view()
 	imageView->setScaleY(600 / iy);
 	this->addChild(imageView, 0);
 
-	// µÈ¼¶±êÇ©
+	// ç­‰çº§æ ‡ç­¾
 	Label* levelTitleLabel = Label::createWithTTF("Level", "fonts/arial.ttf", 25);
 	levelTitleLabel->setColor(Color3B(240, 190, 95));
 	levelTitleLabel->setAnchorPoint(Vec2(0, 1));
-	levelTitleLabel->setPosition(5, height - 50);
+	levelTitleLabel->setPosition(5, 120);
 	this->addChild(levelTitleLabel, 1);
 
-	// µÈ¼¶Êı×Ö
+	// ç­‰çº§æ•°å­—
 	Label* levelLabel = Label::createWithTTF("1", "fonts/arial.ttf", 28);
 	levelLabel->setColor(Color3B(240, 190, 95));
 	levelLabel->setAnchorPoint(Vec2(0, 1));
-	levelLabel->setPosition(10, height - 75);
+	levelLabel->setPosition(100,  120);
 	this->addChild(levelLabel, 1);
 	levelLabel->setTag(95);
 
-	// ·ÖÊı±êÇ©
+	// åˆ†æ•°æ ‡ç­¾
 	Label* scoreTitleLabel = Label::createWithTTF("Score", "fonts/arial.ttf", 25);
 	scoreTitleLabel->setColor(Color3B(240, 190, 95));
 	scoreTitleLabel->setAnchorPoint(Vec2(0, 1));
-	scoreTitleLabel->setPosition(5, height - 110);
+	scoreTitleLabel->setPosition(5, 80);
 	this->addChild(scoreTitleLabel, 1);
 
-	// ·ÖÊıÊı×Ö
+	// åˆ†æ•°æ•°å­—
 	Label* scoreLabel = Label::createWithTTF("0", "fonts/arial.ttf", 28);
 	scoreLabel->setColor(Color3B(240, 190, 95));
 	scoreLabel->setAnchorPoint(Vec2(0, 1));
-	scoreLabel->setPosition(10, height - 135);
+	scoreLabel->setPosition(100, 80);
 	this->addChild(scoreLabel, 1);
 	scoreLabel->setTag(96);
 
-	//×î¸ß¼ÍÂ¼
+	//æœ€é«˜çºªå½•
 	Label* hscoreTitleLabel = Label::createWithTTF("HighScore", "fonts/arial.ttf", 19);
 	hscoreTitleLabel->setColor(Color3B(240, 190, 95));
 	hscoreTitleLabel->setAnchorPoint(Vec2(0, 1));
-	hscoreTitleLabel->setPosition(1, height - 170);
+	hscoreTitleLabel->setPosition(5, 40);
 	this->addChild(hscoreTitleLabel, 1);
 
 	int high = UserDefault::getInstance()->getIntegerForKey("HighScore", 0);
@@ -126,19 +113,15 @@ void GameScene::view()
 	auto highScore = Label::create(String::createWithFormat("%d", high)->getCString(), "fonts/arial.ttf", 28);
 	highScore->setColor(Color3B(240, 190, 95));
 	highScore->setAnchorPoint(Vec2(0, 1));
-	highScore->setPosition(10, height - 210);
+	highScore->setPosition(100, 40);
 	this->addChild(highScore, 1);
-
-	
 
 }
 
-
 void GameScene::createBlocks()
+
 {
-	int color;
-	int ctime[7] = { 0,1,1,1,3,3,3 }; // ±ä»»´ÎÊı
-	auto sframe = SpriteFrame::create("box", Rect(0, 0, bSize - 2, bSize - 2));
+	//æ–¹å—çš„7ä¸­æ¨¡å¼
 	int boxes[7][4][2] = {
 		{ { 0,0 },{ 1,0 },{ 0,1 },{ 1,1 } },
 		{ { 1,0 },{ 0,0 },{ 2,0 },{ 3,0 } },
@@ -148,60 +131,45 @@ void GameScene::createBlocks()
 		{ { 1,0 },{ 0,0 },{ 0,1 },{ 2,0 } },
 		{ { 1,0 },{ 0,0 },{ 2,0 },{ 2,1 } }
 	};
-	Color3B colors[6];
-	colors[0] = Color3B(255, 0, 0); // ºì
-	colors[1] = Color3B(0, 255, 0); // ÂÌ
-	colors[2] = Color3B(0, 0, 255); // À¶
-	colors[3] = Color3B(255, 255, 0); // »Æ
-	colors[4] = Color3B(255, 0, 255); // ×Ï
-	colors[5] = Color3B(0, 255, 255); // Çà
-
-									  // È¡³öÑÕÉ«
-	if (preColor != -1)
-		color = preColor;
-	else
-		color = rand() % 6;
-	// È¡³öĞÎ×´
-	if (preShape != -1)
-		shape = preShape;
+	//åˆ¤æ–­éšæœºï¼Œä»¥åŠä¸ä¸Šä¸€æ­¥åˆ¤æ–­çš„æœªæ¥æ–¹å—èƒ½ä¸€è‡´
+	if (shape != -1)
+		shape = shape_pre;
 	else
 		shape = rand() % 7;
 
-
-	// »ñÈ¡ĞÎ×´ÊµÀı
+	if (color != -1)
+	{
+		color = color_pre;
+	}
+	else
+		color = rand() % 7;
 
 	for (int i = 0; i<4; i++)
 	{
-		Sprite* box = Sprite::createWithSpriteFrame(sframe);
-		box->setColor(colors[color]);
+		auto box = Sprite::create(String::createWithFormat("hlw%d.png", color + 1)->_string);//æ ¹æ®coloræ˜¾ç¤ºä¸åŒçš„å›¾ç‰‡
+
 		box->setAnchorPoint(Vec2(0, 0));
 		box->setPosition(Vec2(getX(4 + boxes[shape][i][0]), getY(13 + boxes[shape][i][1])));
+		box->setScale(0.75, 0.75);
 		this->addChild(box);
 		box->setTag(110 + i);
 	}
 
-	preShape = rand() % 7;
-	preColor = rand() % 6;
-	createPreShape(boxes[preShape]);
-	printf("preShape = %d", preShape);
 
+	shape_pre = rand() % 7;
+	color_pre = rand() % 7;
+
+	createPreShape(boxes[shape_pre]);//åˆ›å»ºæœªæ¥æ–¹å—
 }
+
 void GameScene::createPreShape(int shape[4][2])
 {
 	int s, zx, zy;
-	s = 16;
-	zx = 410;
+	s = 27;
+	zx = 380;
 	zy = 460;
-	auto sframe = SpriteFrame::create("box", Rect(0, 0, s - 1, s - 1));
-	Color3B colors[6];
-	colors[0] = Color3B(255, 0, 0); // ºì
-	colors[1] = Color3B(0, 255, 0); // ÂÌ
-	colors[2] = Color3B(0, 0, 255); // À¶
-	colors[3] = Color3B(255, 255, 0); // »Æ
-	colors[4] = Color3B(255, 0, 255); // ×Ï
-	colors[5] = Color3B(0, 255, 255); // Çà
 
-	for (int i = 0; i<shapeList.size(); i++)
+	for (int i = 0; i<shapeList.size(); i++)//æ¶ˆé™¤åˆšæ‰æ˜¾ç¤ºçš„æœªæ¥æ–¹å—ï¼Œä¸ç„¶ä¼šé‡å è¦†ç›–
 	{
 		auto box = shapeList.at(i);
 		shapeList.eraseObject(box);
@@ -210,30 +178,34 @@ void GameScene::createPreShape(int shape[4][2])
 	}
 
 	for (int i = 0; i<4; i++) {
-		auto box = Sprite::createWithSpriteFrame(sframe);
-		box->setColor(colors[preColor]);
-		box->setAnchorPoint(Vec2(0, 0));
+		auto box = Sprite::create(String::createWithFormat("hlw%d.png", color_pre + 1)->_string);
+		box->setScale(0.65, 0.65);
 		box->setPosition(Vec2(zx + shape[i][0] * s, zy + shape[i][1] * s));
 		this->addChild(box, 1);
 		this->setTag(90 + i);
 		shapeList.pushBack(box);
 	}
-
 }
-// Êı×Ö×ª»»×ø±ê
+
+// æ•°å­—è½¬æ¢åæ ‡
+
 float GameScene::getX(int x)
 {
-	return 85 + x * 31;
+	return 50 + x * 31;
 }
 
 float GameScene::getY(int y)
 {
+
 	return 130 + y * 31;
+
 }
-// ·µ»ØÕûĞÎ×ø±ê
+
+// è¿”å›æ•´å½¢åæ ‡
+
 int GameScene::getIx(float x)
 {
-	return (x - 85) / 31;
+	return (x - 50) / 31;
 }
 
 int GameScene::getIy(float y)
@@ -241,95 +213,7 @@ int GameScene::getIy(float y)
 	return (y - 130) / 31;
 }
 
-
-void GameScene::quickMove(float f)
-{
-	moveBlocks(2);
-}
-void GameScene::downMove(float f)
-{
-	moveBlocks(2);
-}
-
-void GameScene::moveBlocks(int num)
-{
-	if (highest() < 13) { // Èô¸ß¶È³¬¹ı13 £¬Ôò²»¿ÉÒÔÔÙ»ñÈ¡·½¿é
-
-		Sprite* box[4];
-
-	
-		for (int i = 0; i<4; i++)
-		{
-			box[i] = (Sprite *)this->getChildByTag(110 + i); // ½ÚµãÀàĞÍ
-		}
-
-		int x = getIx(box[0]->getPositionX());
-		int y = getIy(box[0]->getPositionY());
-		if (num == 1) // Ïò×óÒÆ¶¯
-		{
-			// ÅĞ¶ÏÊÇ·ñ¿ÉÒÔ×óÒÆ
-			if (!isBoxStopLeft(110) && !isBoxStopLeft(111) && !isBoxStopLeft(112) && !isBoxStopLeft(113)) {
-				for (int i = 0; i<4; i++)
-				{
-					box[i]->setPositionX(getX(getIx(box[i]->getPositionX()) - 1));
-				}
-			}
-		}
-		else if (num == 3)
-		{
-			// ÅĞ¶ÏÊÇ·ñ¿ÉÒÔÓÒÒÆ
-			if (!isBoxStopRight(110) && !isBoxStopRight(111) && !isBoxStopRight(112) && !isBoxStopRight(113)) {
-				for (int i = 0; i<4; i++)
-				{
-					box[i]->setPositionX(getX(getIx(box[i]->getPositionX()) + 1));
-				}
-
-			}
-		}
-		else if (num == 4)
-		{
-			//if(y < 10){}
-		}
-		else if (num == 2) // ÏòÏÂÒÆ¶¯
-		{
-
-			// ÅĞ¶ÏÊÇ·ñµ½µ×£¬»òÏÂ·½ÊÇ·ñÓĞÕÏ°­Îï
-			if (isBoxStopDown(110) || isBoxStopDown(111) || isBoxStopDown(112) || isBoxStopDown(113)) {
-				for (int i = 0; i<4; i++)
-				{
-					box[i]->setTag(120); // Ê¹Ö®²»±»ÒÆ¶¯
-					this->boxList.pushBack(box[i]); // Ìí¼Óµ½²»±»ÒÆ¶¯µÄÊı×éÖĞ
-				}
-				// ´´½¨ĞÂµÄ·½¿é
-				// ½«¸Ãbox´æÈëÊı×éµ±ÖĞ
-				// ÔÚ´æÈëÊı×éÖ®ºóÅĞ¶ÏÊÇ·ñ¿ÉÒÔÏû³ıÒ»ĞĞ
-
-				//printf("High is %d\n",highest()); // 14 Êä²»³öÀ´£¿¹ûÈ»ÊÇÒòÎªcheckBox()µÄÔ­Òò°¡
-				if (highest() < 13) { // Ä³¸öÊ±¿Ì£¬hightest() == 12
-					checkBox(); // Game Over Ö®ºóÔÙÖ´ĞĞµÄ»°»á±¨´í
-					createBlocks();
-				}
-				else {
-
-					GameOver();
-				}
-
-
-				// Í£Ö¹¼ÓËÙÏÂÒÆ
-				this->unschedule(schedule_selector(GameScene::downMove));
-			}
-			else {
-				for (int i = 0; i<4; i++)
-				{
-					box[i]->setPositionY(getY(getIy(box[i]->getPositionY()) - 1));
-				} // ÒÆ¶¯
-			}
-		}
-
-	}
-}
-
-int GameScene::highest()
+int GameScene::highest()//åˆ¤æ–­æœ€é«˜ç‚¹
 {
 	int h = 0;
 	for (int i = 0; i<boxList.size(); i++)
@@ -340,222 +224,185 @@ int GameScene::highest()
 			h = y;
 	}
 	return h;
+
 }
 
-// ÊÇ·ñÍ£Ö¹ÏÂÒÆ
-bool GameScene::isBoxStopDown(int tag)
-{
-	Sprite* box = (Sprite *)this->getChildByTag(tag); // ½ÚµãÀàĞÍ
-	Point pa;
-	bool flag = false;
-	pa.x = getIx(box->getPositionX());
-	pa.y = getIy(box->getPositionY());
-	// ±éÀúboxList
-	for (int i = 0; i<boxList.size(); i++)
-	{
-		Sprite* mbox = boxList.at(i);
-		Point pb;
-		pb.x = getIx(mbox->getPositionX());
-		pb.y = getIy(mbox->getPositionY());
-		if (pa.y - pb.y == 1 && pa.x == pb.x)
-		{
-			flag = true;
-		}
-	}
-	if (pa.y <= 0)
-		flag = true;
-	return flag;
-}
-
-// ÊÇ·ñÍ£Ö¹×óÒÆ
-bool GameScene::isBoxStopLeft(int tag)
-{
-	Sprite* box = (Sprite *)this->getChildByTag(tag); // ½ÚµãÀàĞÍ
-	Point pa;
-	bool flag = false;
-	pa.x = getIx(box->getPositionX());
-	pa.y = getIy(box->getPositionY());
-	// ±éÀúboxList
-	for (int i = 0; i<boxList.size(); i++)
-	{
-		Sprite* mbox = boxList.at(i);
-		Point pb;
-		pb.x = getIx(mbox->getPositionX());
-		pb.y = getIy(mbox->getPositionY());
-		if (pa.x - pb.x == 1 && pa.y == pb.y)
-		{
-			flag = true;
-		}
-	}
-	if (pa.x <= 0)
-		flag = true;
-	return flag;
-}
-
-// ÊÇ·ñÍ£Ö¹ÓÒÒÆ
-bool GameScene::isBoxStopRight(int tag)
-{
-	Sprite* box = (Sprite *)this->getChildByTag(tag); // ½ÚµãÀàĞÍ
-	Point pa;
-	bool flag = false;
-	pa.x = getIx(box->getPositionX());
-	pa.y = getIy(box->getPositionY());
-	// ±éÀúboxList
-	for (int i = 0; i<boxList.size(); i++)
-	{
-		Sprite* mbox = boxList.at(i);
-		Point pb;
-		pb.x = getIx(mbox->getPositionX());
-		pb.y = getIy(mbox->getPositionY());
-		if (pa.x - pb.x == -1 && pa.y == pb.y)
-		{
-			flag = true;
-		}
-	}
-	if (pa.x >= 9)
-		flag = true;
-	return flag;
-}
-
-
-// ¼ì²âÊÇ·ñ¿ÉÒÔÇå³ı
+// æ£€æµ‹æ˜¯å¦å¯ä»¥æ¸…é™¤
 void GameScene::checkBox()
+
 {
-	// 10¸ö·½¿é£¬×İ×ø±êÖµÏàµÈ£¬ºá×ø±êÎª1-10
-	// Êı¾İ×ª»»:
-	bool fk[13][10] = { false }; // Ê®¶şĞĞ£¬Ê®ÁĞ
-	int  del[4];
-	int  dx = 0;
-	for (int i = 0; i<boxList.size(); i++)
+	// æ•°æ®è½¬æ¢:
+	int del[4];
+	int num = 0;
+	int check;
+	bool square[10][13];
+	for (int i = 0; i < boxList.size(); i++)//è½¬åŒ–ä¸ºæ£‹ç›˜
 	{
-		Sprite* box = boxList.at(i);
-		int x = getIx(box->getPositionX());
-		int y = getIy(box->getPositionY());
-		fk[y][x] = true;
-	} // Ñ­»·½áÊø
-
-	for (int i = 0; i<12; i++)
+		cocos2d::Sprite*box = boxList.at(i);
+		square[getIx(box->getPositionX())][getIy(box->getPositionY())] = true;
+	}
+	for (int i = 0; i<12; i++)//åˆ¤æ–­æ˜¯å¦è¾¾æˆä¸€è¡Œæ˜¯ä¸ªéƒ½ä¸ºtrueçš„æƒ…å†µï¼Œå­˜åœ¨è¿™ä¸ªæƒ…å†µå°±åº”å½“æ¶ˆå»è®°å½•
 	{
-		int flag = 0;
-		for (int j = 0; j<10; j++)
+		check = 0;
+		for (int j = 0; j < 10; j++)
 		{
-			if (fk[i][j] == true)
+			if (square[j][i] == true)
 			{
-				flag++;
-			}
-			else {
+				check++;
 			}
 		}
-		// Èô flag ÀÛ¼Óµ½10£¬ÔòÉ¾³ıµÚiĞĞ
-		if (flag == 10) {
-
-			del[dx] = i; // ¼ÇÂ¼ĞèÒªÒÆ³ıµÄ×İ×ø±ê
-			dx++; // ¼ÇÂ¼×İ×ø±êµÄÊıÁ¿
-		}
-	}
-
-	// ÒÆ³ıboxList ÖĞµÄ box
-	//int size = boxList.size(); µ¼ÖÂÊı×é³¬½ç
-	for (int i = 0; i < boxList.size(); i++)
-	{
-		auto box = boxList.at(i);
-		int y = getIy(box->getPositionY());
-		int x = getIx(box->getPositionX());
-		for (int j = 0; j<dx; j++)
+		if (check == 10)
 		{
-			if (y == del[j]) {
-				boxList.eraseObject(box);
-				box->removeFromParent();
-				i--;
-					 // Òª·ÃÎÊµÄÏÂÒ»¸öÔªËØÇ°ÒÆÁË                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-			}
-		}
-	}
-	// Ñ­»·½áÊø
-	int temp;
-	for (int i = 0; i<dx - 1; i++) {
-		for (int j = 0; j<dx - 1 - i; j++) {
-			if (del[j + 1] > del[j]) {
-				temp = del[j];
-				del[j] = del[j + 1];
-				del[j + 1] = temp;
-			}
+			del[num] = i;
+			num++;
 		}
 	}
 
-	// ÏÂÒÆbox
-	for (int i = 0; i < boxList.size(); i++)
+	clean(del, num);
+
+
+
+	// è®¡ç®—åˆ†æ•°
+
+	switch (num)
 	{
-		auto box = boxList.at(i);
-		int y = getIy(box->getPositionY());
-		int x = getIx(box->getPositionX());
-		// ¶ÔÒ»¸ö·½¸ñ½øĞĞ¶à´ÎÒÆ¶¯
-		for (int j = 0; j<dx; j++)
-		{
-			if (y > del[j]) {
-				y--; // yµÄÖµ·¢ÉúÁË¸Ä±ä
-				box->setPositionY(getY(y));
-			}
-		}
+	case 1:score += 10; break;
+	case 2:score += 25; break;
+	case 3:score += 40; break;
+	case 4:score += 60; break;
 	}
 
-	// ¼ÆËã·ÖÊı
-	if (dx == 1) {
-		score += 10;
-	}
-	else if (dx == 2) {
-		score += 30 + (level - 1) * 10;
-	}
-	else if (dx == 3) {
-		score += 60 + (level - 1) * 20;
-	}
-	else if (dx == 4) {
-		score += 100 + (level - 1) * 30;
-	}
-	// ¸Ä±ä·ÖÊı
+	// æ”¹å˜åˆ†æ•°
+
 	Label* scoreLabel = (Label*)this->getChildByTag(96);
+
 	scoreLabel->setString(String::createWithFormat("%d", score)->_string);
-	// ¸Ä±äµÈ¼¶
+
+	// æ”¹å˜ç­‰çº§
+
 	Label* levelLabel = (Label*)this->getChildByTag(95);
+
 	// 100 250 500 950 1300 1850 
-	int upScore = level * 100 + (level - 1) * (level - 1) * 50; // ·ÖÊıÓÉµÈ¼¶¾ö¶¨
-	if (score > upScore) {
-		level++;
+
+	int upScore = level * 100 + (level - 1) * (level - 1) * 50; // åˆ†æ•°ç”±ç­‰çº§å†³å®š
+
+	if (score >= upScore) {
+
+		if (level < 5)
+		{
+			level++;
+		}
+
 		levelLabel->setString(String::createWithFormat("%d", level)->_string);
-		
+
+		this->schedule(schedule_selector(GameScene::downMove), (time / level)+0.1f);//æ”¹å˜é€Ÿåº¦
+
 	}
+
 }
-// °´¼üÊÂ¼ş
+
+void GameScene::clean(int a[], int number)
+{
+	for (int n = 0; n < boxList.size(); n++)
+	{
+		cocos2d::Sprite*box = boxList.at(n);
+		int y = getIy(box->getPositionY());
+		int x = getIx(box->getPositionX());
+
+		for (int h = number - 1; h>-1; h--)
+		{
+			if (y == a[h])
+			{
+				boxList.eraseObject(box);
+				box->removeFromParent();//å°†è¿™ä¸ªèŠ‚ç‚¹ä»è¿™ä¸ªä½“ç³»é‡Œé¢å®Œå…¨æ¶ˆé™¤
+				n--;
+			}
+		}
+	}
+	for (int i = 0; i < boxList.size(); i++)
+
+	{
+
+		auto box = boxList.at(i);
+
+		int y = getIy(box->getPositionY());
+
+		int x = getIx(box->getPositionX());
+
+		// å¯¹ä¸€ä¸ªæ–¹æ ¼è¿›è¡Œå¤šæ¬¡ç§»åŠ¨
+
+		for (int j = number - 1; j >= 0; j--)
+
+		{
+
+			if (y > a[j]) {
+
+				y--; // yçš„å€¼å‘ç”Ÿäº†æ”¹å˜
+
+				box->setPositionY(getY(y));
+
+			}
+
+		}
+
+	}
+
+
+}
+
+// æŒ‰é”®äº‹ä»¶
+
 void GameScene::onKeyPressed(EventKeyboard::KeyCode keycode, cocos2d::Event *event)
 {
-	if (keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW)  //ÏÂ
+	if (keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW)  //ä¸‹
 	{
-		moveBlocks(2);
-		// ¼üÅÌ¼ÓËÙ¶¨Ê±Æ÷ ÑÓ³Ù 0.5s Ö´ĞĞ
-		this->schedule(schedule_selector(GameScene::downMove), 0.005f, 12, 0.5f);
-
+		down(1);
+		// é”®ç›˜åŠ é€Ÿå®šæ—¶å™¨ å»¶è¿Ÿ 0.1s æ‰§è¡Œ
+		this->schedule(schedule_selector(GameScene::down), 0.1f, 12, 0.1f);
 	}
-	else if (keycode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)  //×ó
+	else if (keycode == EventKeyboard::KeyCode::KEY_SPACE)
 	{
-		moveBlocks(1);
+		down(1);
+		// é”®ç›˜åŠ é€Ÿå®šæ—¶å™¨ å»¶è¿Ÿ 0.1s æ‰§è¡Œ
+		this->schedule(schedule_selector(GameScene::down), 0.001f, 12, 0.1f);
 	}
-	else if (keycode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)  //ÓÒ
+	else if (keycode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)  //å·¦
 	{
-		moveBlocks(3);
+		if (highest() < 13&&change_position(-1))
+		{
+			moveBlocks(-1);
+		}
 	}
-	else if (keycode == EventKeyboard::KeyCode::KEY_UP_ARROW)  //ÉÏ
+	else if (keycode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)  //å³
 	{
-		moveBlocks(4);
-		// ÔÚÕâÀï¸Ä±äĞÎÌ¬
+		if (highest() < 13&&change_position(1))
+		{
+			moveBlocks(1);
+		}
+	}
+	else if (keycode == EventKeyboard::KeyCode::KEY_UP_ARROW)  //ä¸Š
+	{
+		down(1);
+		// åœ¨è¿™é‡Œæ”¹å˜å½¢æ€
 		changeShape();
 	}
-
 }
+
+void GameScene::onKeyReleased(EventKeyboard::KeyCode keycode, cocos2d::Event *event)
+{
+	if (keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW)  //ä¸‹
+	{
+		down(1);
+		// é”®ç›˜åŠ é€Ÿå®šæ—¶å™¨ å»¶è¿Ÿ 0.5s æ‰§è¡Œ
+		this->unschedule(schedule_selector(GameScene::down));
+	}
+}
+
 void GameScene::changeShape()
 {
-	if (highest() < 13) {
-		int ctime[7] = { 0,1,1,1,3,3,3 }; // ±ä»»´ÎÊı
-		static int flag = 0; // ÓÒ×ª
+	if (highest() < 14) {
+		int ctime[7] = { 0,1,1,1,3,3,3 }; // å¯¹åº”çš„æ¨¡å¼å¯ä»¥å˜æ¢çš„æ¬¡æ•°
+		int flag = 1;//1ä¸ºå³è½¬ï¼Œ-1ä¸ºå·¦è½¬
 		int bx[4], by[4], fx[4], fy[4];
 		Sprite* boxes[4];
 		for (int i = 0; i<4; i++) {
@@ -563,95 +410,213 @@ void GameScene::changeShape()
 			bx[i] = getIx(boxes[i]->getPositionX());
 			by[i] = getIy(boxes[i]->getPositionY());
 		}
-		// µÃµ½ÁË·½¿éµÄËÄ¸ö×ø±ê
+		// å¾—åˆ°äº†æ–¹å—çš„å››ä¸ªåæ ‡
 		if (ctime[shape] == 0) {
-			// ²»ÓÃ±ä»»
+			// ä¸ç”¨å˜æ¢
 		}
 		else if (ctime[shape] == 1) {
-			// Á½´Î±ä»»
-			if (flag == 0) { // ÓÒ×ª
-				for (int i = 0; i<4; i++) {
-					fx[i] = bx[0] - (by[0] - by[i]);
-					fy[i] = by[0] + (bx[0] - bx[i]);
-				}
-				flag = 1;
+			// ä¸¤æ¬¡å˜æ¢
+			for (int i = 0; i<4; i++) {
+				fx[i] = bx[0] - (by[0] - by[i])*flag;
+				fy[i] = by[0] + (bx[0] - bx[i])*flag;
 			}
-			else if (flag == 1) { // ×ó×ª
-				for (int i = 0; i<4; i++) {
-					fx[i] = bx[0] + (by[0] - by[i]);
-					fy[i] = by[0] - (bx[0] - bx[i]);
-				}
-				flag = 0;
-			}
-			// Ğı×ª
-			if (isExist(fx[0], fy[0]) && isExist(fx[1], fy[1]) && isExist(fx[2], fy[2]) && isExist(fx[3], fy[3])) {
+			flag = -flag;
+			// æ—‹è½¬
+			if (in_out_x(fx) && in_out_y(fy)) {
 				for (int i = 0; i<4; i++) {
 					boxes[i]->setPositionX(getX(fx[i]));
 					boxes[i]->setPositionY(getY(fy[i]));
 				}
 			}
 			else {
-				flag = (flag == 1) ? 0 : 1; // È¡·´
+				flag = -flag; // å–å
 			}
 		}
 		else if (ctime[shape] == 3) {
-			// ËÄ´Î±ä»» µ¥ÏòĞı×ª
+			// å››æ¬¡å˜æ¢ å•å‘æ—‹è½¬
 			for (int i = 0; i<4; i++) {
 				fx[i] = bx[0] - (by[0] - by[i]);
 				fy[i] = by[0] + (bx[0] - bx[i]);
 			}
-			// µÃµ½ËÄ¸ö×ø±ê,ÅĞ¶ÏËÄ¸ö×ø±êÊÇ·ñ¿ÉÒÔ´æÔÚ
-			if (isExist(fx[0], fy[0]) && isExist(fx[1], fy[1]) && isExist(fx[2], fy[2]) && isExist(fx[3], fy[3])) {
+			// å¾—åˆ°å››ä¸ªåæ ‡,åˆ¤æ–­å››ä¸ªåæ ‡æ˜¯å¦å¯ä»¥å­˜åœ¨
+			if (in_out_x(fx) && in_out_y(fy)) {
 				for (int i = 0; i<4; i++) {
 					boxes[i]->setPositionX(getX(fx[i]));
 					boxes[i]->setPositionY(getY(fy[i]));
 				}
 			}
 		}
-
 	}
 }
 
-// ÖØµş¼ì²â
-bool GameScene::isExist(int x, int y)
+bool GameScene::in_out_x(int x[])//å¯ä»¥æ—‹è½¬ï¼Œè¿”å›1ï¼Œä¸å¯ä»¥åˆ™è¿”å›0ï¼Œä¸»è¦æ£€æµ‹å·¦å³æ˜¯å¦è¶…å‡ºæ¸¸æˆèŒƒå›´
 {
-	bool flag = true;
-	for (int i = 0; i<boxList.size(); i++)
+	int check = 1;
+	for (int i = 0; i < 4; i++)
 	{
-		Sprite* mbox = boxList.at(i);
-		int bx = getIx(mbox->getPositionX());
-		int by = getIy(mbox->getPositionY());
-		if ((bx == x && by == y))
+		if (x[i] < 0 || x[i]>9)
 		{
-			flag = false;
+			check = 0;
 		}
 	}
-	if (x < 0 || x > 9 || y < 0)
-		flag = false;
-	printf("x = %d y = %d\n", x, y);
-	return flag;
+	return check;
+}
+
+bool GameScene::in_out_y(int y[])//å¯ä»¥æ—‹è½¬ï¼Œè¿”å›1ï¼Œä¸å¯ä»¥åˆ™è¿”å›0ï¼Œä¸»è¦æ£€æµ‹æ˜¯å¦ä¼šè§¦ç¢°åˆ°æœ€åº•å±‚
+{
+	int check = 1;
+	for (int i = 0; i < 4; i++)
+	{
+		if (y < 0)
+		{
+			check = 0;
+		}
+	}
+	return check;
+}
+
+bool GameScene::change_position(int flag)//åˆ¤æ–­æ˜¯å¦å¯ä»¥å·¦å³ç§»åŠ¨
+{
+	bool square[10][13];
+	for (int i = 0; i < boxList.size(); i++)//è½¬åŒ–ä¸ºæ£‹ç›˜
+	{
+		cocos2d::Sprite*box = boxList.at(i);
+		square[getIx(box->getPositionX())][getIy(box->getPositionY())] = true;
+	}
+
+	Sprite* boxes[4];
+	int bx[4], by[4];
+	for (int i = 0; i<4; i++) {
+		boxes[i] = (Sprite *)this->getChildByTag(110 + i);
+		bx[i] = getIx(boxes[i]->getPositionX()) + flag;//å‡è®¾å¦‚æœå¯ä»¥ç§»åŠ¨ä¹‹åçš„åæ ‡
+		by[i] = getIy(boxes[i]->getPositionY()) ;
+	}
+
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 13; j++)
+		{
+			if (square[i][j] == true)
+			{
+				for (int bi = 0; bi < 4; bi++)
+				{
+					if (bx[bi] == i&&by[bi] == j)//è‹¥æœ‰æ–¹å—ä¸ä¹‹é‡åˆï¼Œé‚£ä¹ˆä¸æˆç«‹ï¼Œä¸èƒ½å˜åŒ–
+						return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+void GameScene::moveBlocks(float direction)//left(-1)ï¼›right(1)ï¼›
+{
+	int beforeX[4], afterX[4];
+	cocos2d::Sprite*box[4];
+	for (int i = 0; i < 4; i++)
+	{
+		box[i] = (cocos2d::Sprite *)this->getChildByTag(110 + i);
+		beforeX[i] = getIx(box[i]->getPositionX());
+		afterX[i] = beforeX[i] + direction;
+	}
+	if (in_out_x(afterX))
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			box[i]->setPositionX(getX(afterX[i]));
+		}
+	}
+}
+
+void GameScene::downMove(float y)
+{
+	if (highest() < 13)
+	{
+		cocos2d::Sprite*box[4];
+		for (int i = 0; i < 4; i++)
+		{
+			box[i] = (cocos2d::Sprite *)this->getChildByTag(110 + i); // èŠ‚ç‚¹ç±»å‹
+		}
+
+		//ä¸èƒ½ä¸‹ç§»
+		if (!in_out_s(110))
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				box[i]->setTag(40);
+				this->boxList.pushBack(box[i]);
+			}
+			//åˆ¤æ–­æ˜¯å¦å¾—åˆ†
+			if (highest() < 13)
+			{
+				checkBox();
+				createBlocks();
+			}
+			else
+			{
+				GameOver();
+			}
+			this->unschedule(schedule_selector(GameScene::down));
+		}
+		else//å¯ä»¥ä¸‹ç§»
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				box[i]->setPositionY(getY(getIy(box[i]->getPositionY()) - 1));
+			}
+		}
+	}
+}
+
+void GameScene::down(float y)
+{
+	downMove(1);
+}
+
+bool GameScene::in_out_s(int tag)//æ£€æµ‹æ˜¯å¦å¯ä»¥ä¸‹ç§»ã€‚0è¡¨ç¤ºä¸å¯ä»¥ï¼Œ1è¡¨ç¤ºå¯ä»¥
+{
+	cocos2d::Sprite*box;
+	for (int i = 0; i < 4; i++)
+	{
+		box = (cocos2d::Sprite*)this->getChildByTag(tag + i);
+		int afterX = getIx(box->getPositionX());
+		int afterY = getIy(box->getPositionY());
+
+		if (afterY <= 0)
+			return 0;
+
+		for (int j = 0; j < boxList.size(); j++)
+		{
+			cocos2d::Sprite*box_vec = boxList.at(j);
+			int beforeX = getIx(box_vec->getPositionX());
+			int beforeY = getIy(box_vec->getPositionY());
+
+			if (beforeX - afterX == 0 && beforeY - afterY == -1)//4ä¸ªæ–¹å—çš„ä¸‹ç«¯æ˜¯å¦æœ‰æ–¹å—
+			{
+				return 0;
+			}
+		}
+	}
+	return 1;
 }
 
 void GameScene::GameOver()
 {
-	// Í£Ö¹±³¾°ÒôÀÖ
+	// åœæ­¢èƒŒæ™¯éŸ³ä¹
 	SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-
 	auto overlabel = Label::createWithTTF("GAME OVER", "fonts/Marker Felt.ttf", 90);
 	overlabel->setColor(Color3B(245, 146, 71));
 	// position the label on the center of the screen
 	overlabel->setPosition(Vec2(240, 500));
 	// add the label as a child to this layer
 	this->addChild(overlabel, 1);
-
-	std::string printfscore = StringUtils::format("score:%d",score);
+	std::string printfscore = StringUtils::format("score:%d", score);
 	auto scorelabel = Label::createWithTTF(printfscore, "fonts/Marker Felt.ttf", 50);
 	scorelabel->setColor(Color3B(245, 146, 71));
 	// position the label on the center of the screen
 	scorelabel->setPosition(Vec2(240, 405));
 	// add the label as a child to this layer
 	this->addChild(scorelabel, 1);
-
 	UserDefault * userDefault = UserDefault::getInstance();
 	int lastScore = userDefault->getIntegerForKey("HighScore");
 	if (score > lastScore)
@@ -659,15 +624,14 @@ void GameScene::GameOver()
 		userDefault->setIntegerForKey("HighScore", score);
 		userDefault->getInstance()->flush();
 	}
-	// ÖØĞÂ¿ªÊ¼
+	// é‡æ–°å¼€å§‹
 	auto restartItemImage = MenuItemImage::create("restart.png", "restart.png",
 		CC_CALLBACK_1(GameScene::menuRestartCallback, this));
 	auto restartMenu = Menu::create(restartItemImage, NULL);
 	restartMenu->setAnchorPoint(Vec2(0.5, 0.5));
 	restartMenu->setPosition(Vec2(240, 300));
 	this->addChild(restartMenu, 1);
-
-	// ·µ»Ø
+	// è¿”å›
 	auto returnItemImage = MenuItemImage::create("returnhome.png", "returnhome.png",
 		CC_CALLBACK_1(GameScene::menuReturnCallback, this));
 	auto returnMenu = Menu::create(returnItemImage, NULL);
@@ -675,15 +639,14 @@ void GameScene::GameOver()
 	returnMenu->setPosition(Vec2(240, 200));
 	this->addChild(returnMenu, 1);
 }
+
 void GameScene::menuRestartCallback(Ref *pSender)
 {
-
 	Director::getInstance()->replaceScene(GameLay::createScene());
 }
 
 void GameScene::menuReturnCallback(Ref *pSender)
 {
-
 	Director::getInstance()->replaceScene(StartScene::createScene());
 	SimpleAudioEngine::getInstance()->playBackgroundMusic("music.mp3", true);
 }
