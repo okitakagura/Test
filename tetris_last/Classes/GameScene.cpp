@@ -371,7 +371,7 @@ void GameScene::onKeyPressed(EventKeyboard::KeyCode keycode, cocos2d::Event *eve
 	{
 		down(1);
 		// 键盘加速定时器 延迟 0.1s 执行
-		this->schedule(schedule_selector(GameScene::down), 0.001f, 12, 0.1f);
+		this->schedule(schedule_selector(GameScene::down), 0.01f, 12, 0.2f);
 	}
 	else if (keycode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)  //左
 	{
