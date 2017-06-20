@@ -74,7 +74,7 @@ void GameScene::view()
 
 
 	CCSprite *image = CCSprite::create("picture1.png");
-	image->setPosition(Vec2(375, 250));
+	image->setPosition(Vec2(375, 125));
 	image->setAnchorPoint(Vec2(0, 0));
 	image->setScale(0.8f);
 	this->addChild(image, 0);
